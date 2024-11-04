@@ -14,5 +14,5 @@ long_description: |
 name: panaroo
 owner: Gerry Tonkin-Hill
 remote_repository_url: https://github.com/gtonkinhill/panaroo.git
-homepage_url: https://github.com/gtonkinhill/panaroo
+homepage_url: https://gthlab.au/panaroo/#/gettingstarted/quickstart
 type: unrestricted

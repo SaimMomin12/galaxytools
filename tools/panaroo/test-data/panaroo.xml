@@ -32,7 +32,7 @@
         #for $gff in $gff_input.gffs
             #set $filename = '%s.gff' % re.sub('[^\w_-]', '_', str($gff.element_identifier))  ## Clean filename
             cp '$gff' $filename &&  ## Copy the original GFF file to the cleaned filename
-            $filenames.append(str($filename))  ## Add cleaned filename to the list
+            $filenames.append(str($filename)) 
         #end for
 
         panaroo

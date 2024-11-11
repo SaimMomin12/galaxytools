@@ -18,19 +18,8 @@
     </xrefs>
     
     <command detect_errors="exit_code"><![CDATA[
-        ## Import regex module for filename sanitization
-        #import re
-        #set $filenames = list()  ## Initialize list for cleaned filenames
-
-        ## Loop through each GFF input and sanitize the filename
-        #for $gff in $gff_input.gffs
-            #set $filename = '%s.gff' % re.sub('[^\w_-]', '_', str($gff.element_identifier))  ## Clean filename
-            cp '$gff' $filename &&  ## Copy the original GFF file to the cleaned filename
-            $filenames.append(str($filename))  ## Add cleaned filename to the list
-        #end for
-
         panaroo
-            -i '$ex1.gff'
+            -i '$input1'
             -o out
             '$mode'
             '$remove_invalid_genes'
@@ -44,7 +33,6 @@
             '$refind_mode'
             '$alignment' 
             '$aligner'
-            ##--codons
             '$core_threshold'
             '$core_subset_choice'
             '$core_entropy_filter'
@@ -57,25 +45,10 @@
             '$min_edge_support_sv'
             '$all_seq_in_graph'
             '$no_clean_edges'
-
-            #for $f in $filenames
-                '$f'
-            #end for
     ]]></command>
     
     <inputs>
-        <conditional name="gff_input">
-            <param name="gff_input_selector" type="select" label="Individual gff files or a dataset collection" help="Select between individual gff files or a collection of gff files">
-                <option value="individual">Individual</option>
-                <option value="collection">Collection</option>
-            </param>
-            <when value="individual">
-                <param name="gffs" type="data" format="gff,gff3" min="1" label="select gff inputs to Panaroo" help="Select the files you wish to send to Panaroo, must be in gff3 format." multiple="true"/>
-            </when>
-            <when value="collection">
-                <param name="gffs" type="data_collection" format="gff,gff3" label="Dataset collection to submit to Panaroo" help="A dataset list collection of gff3 files to send to Panaroo for analysis." collection_type="list"/>
-            </when>
-        </conditional>
+        <param type="data" name="input1" format="gff,gff3" label="select gff inputs to Panaroo" help="Select the files you wish to send to Panaroo, must be in gff3 format."/>
         <!--MODES-->
         <param name="mode" type="select" value="strict" label="filtering mode" help="Change a number of defaults to either favour strict, moderate or sensitive filtering">
             <option value="strict">Strict</option>
@@ -148,7 +121,7 @@
     <outputs>
         <data format="csv" name="gene_p_a" label="${tool.name} on ${on_string} Gene Presence Absence" from_work_dir="out/gene_presence_absence.csv"/>
         <data format="fasta" name="core_gene_aln" label="${tool.name} on ${on_string} Core Gene Alignment" from_work_dir="out/core_gene_alignment.aln"/>
-        <data format="gml" name="final_graph" label="${tool.name} on ${on_string} Final Graph" from_work_dir="out/final_graph.gml"></data>
+        <data format="gml" name="final_graph" label="${tool.name} on ${on_string} Final Graph" from_work_dir="out/final_graph.gml"/>
         <data format="txt" name="gene_p_a_rtab" label="${tool.name} on ${on_string} Gene Presence Absence Rtab" from_work_dir="out/gene_presence_absence.Rtab">
             <filter>outputs and 'genepa_rtab' in outputs</filter>
         </data>
@@ -175,14 +148,14 @@
     <tests>
         <!-- Hint: You can use [ctrl+alt+t] after defining the inputs/outputs to auto-scaffold some basic test cases. -->
         <test expect_num_outputs="3">
-            <param name="gff_input_selector" value="individual"/>
-            <param name="gffs" value="ex1.gff" ftype="gff3"/>
+            <param name="input1" value="ex1.gff" ftype="gff3"/>
             <param name="mode" value="strict"/>
             <param name="remove_invalid_genes" value="false"/>
             <param name="alignment" value="core"/>
             <param name="aligner" value="mafft"/>
             <output name="gene_p_a" file="out/gene_p_a.csv" ftype="csv"/>
             <output name="core_gene_aln" file="out/core_gene_alignment.aln" ftype="fasta"/>
+            <output name="final_graph" file="out/final_graph.gml" ftype="gml"/>
         </test>
     </tests>
     <help><![CDATA[

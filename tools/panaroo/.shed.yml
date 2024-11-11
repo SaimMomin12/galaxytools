@@ -3,16 +3,14 @@ categories:
 - Genome comparison
 description: Panaroo builds a graphical representation of the pangenome while performing a number of cleaning steps.
 long_description: |
-   The Panaroo algorithm builds a graphical representation of the pangenome 
-   where nodes are genes and edges connect nodes if two genes appear adjacent to one another on at least one contig.
-   The algorithm then uses this initial graph structure to perform a number of cleaning steps 
-   which correct for many of the problems encountered in genome annotation. 
-   Panaroo accepts annotated assemblies in GFF3 format as output by the popular annotation pipeline Prokka. 
-   Unlike similar pangenome software, Panaroo attempts to preserve the full global context of each gene in the graph.
+   Panaroo is a tool for constructing pangenomes from bacterial genome datasets.
+   It analyzes genome sequences to identify and organize core and accessory genes across multiple strains of a species.
+   Panaroo also performs several cleaning steps to refine gene clusters, removing redundancy and improving accuracy.
+   The tool outputs data that researchers can use to study gene distribution, diversity, and evolutionary relationships within bacterial populations.
    
    https://github.com/gtonkinhill/panaroo
 name: panaroo
-owner: Gerry Tonkin-Hill
+owner: bgruening
 remote_repository_url: https://github.com/gtonkinhill/panaroo.git
 homepage_url: https://gthlab.au/panaroo/#/gettingstarted/quickstart
 type: unrestricted

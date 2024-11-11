@@ -1,28 +1,22 @@
 <tool id="panaroo" name="Panaroo" version="@TOOL_VERSION@+galaxy@VERSION_SUFFIX@" profile="23.02" license="MIT">
     <description>Generate core gene alignments from GFF3 files in a pangenome analysis.</description>
     <macros>
-        <token name="@TOOL_VERSION@">1.3.0</token>
-        <token name="@VERSION_SUFFIX@">0</token>
+        <import>macros.xml</import>
     </macros>
     <edam_topics>
-        <edam_topic>topic_3308</edam_topic> <!-- "Pangenomics" -->
-        <edam_topic>topic_0084</edam_topic> <!-- "Genomics" -->
-        <edam_topic>topic_3053</edam_topic> <!-- "Phylogenetics" -->
+        <edam_topic>topic_3945</edam_topic> <!-- "Molecular evolution " -->
+        <edam_topic>topic_0084</edam_topic> <!-- "Phylogeny" -->
+        <edam_topic>topic_3053</edam_topic> <!-- "Genetics" -->
     </edam_topics>
     <edam_operations>
-        <edam_operation>operation_3212</edam_operation> <!-- "Gene clustering" -->
-        <edam_operation>operation_3458</edam_operation> <!-- "Genome comparison" -->
-        <edam_operation>operation_0304</edam_operation> <!-- "Annotation" -->
+        <edam_operation>operation_3432</edam_operation> <!-- "Gene clustering" -->
+        <edam_operation>operation_2424</edam_operation> <!-- "Genome comparison" -->
+        <edam_operation>operation_0337</edam_operation> <!-- "Visualisation" -->
     </edam_operations>
     <xrefs>
         <xref type="bio.tools">panaroo</xref>
     </xrefs>
-    <!-- TODO: please annotate this tool with topics and operations from http://edamontology.org -->
-    <!-- TODO: for more information see: https://galaxy-iuc-standards.readthedocs.io/en/latest/best_practices/tool_xml.html#edam-topics-and-operations -->
-    <requirements>
-        <requirement type="package" version="@TOOL_VERSION@">panaroo</requirement>
-    </requirements>
-
+    
     <command detect_errors="exit_code"><![CDATA[
         ## Import regex module for filename sanitization
         #import re
@@ -36,33 +30,33 @@
         #end for
 
         panaroo
-            -i '$test_data.gff'
+            -i '$ex1.gff'
             -o out
-            --clean-mode '$mode'
-            --remove-invalid-genes '$remove_invalid_genes'
-            --threshold '$threshold'
-            --family_threshold '$family_identity'
-            --len_dif_percent '$len_dif_percent'
-            --family_len_dif_percent '$family_len_dif_percent'
-            --merge_paralogs '$merge_paralogs'
-            --search_radius '$search_radius'
-            --refind_prop_match '$refind_prop_match'
-            --refind_mode '$refind_mode'
-            --alignment '$alignment' 
-            --aligner '$aligner'
-            --codons
-            --core_threshold '$core_threshold'
-            --core_subset '$core_subset_choice'
-            --core_entropy_filter '$core_entropy_filter'
-            --min_trailing_support '$min_trailing_support'
-            --trailing_recursive '$trailing_recursive'
-            --edge_support_threshold '$edge_support_threshold'
-            --length_outlier_support_proportion '$length_outlier_support_proportion'
-            --remove_by_consensus '$remove_by_consensus'
-            --high_var_flag '$high_var_flag'
-            --min_edge_support_sv '$min_edge_support_sv'
-            --all_seq_in_graph '$all_seq_in_graph'
-            --no_clean_edges '$no_clean_edges'
+            '$mode'
+            '$remove_invalid_genes'
+            '$threshold'
+            '$family_identity'
+            '$len_dif_percent'
+            '$family_len_dif_percent'
+            '$merge_paralogs'
+            '$search_radius'
+            '$refind_prop_match'
+            '$refind_mode'
+            '$alignment' 
+            '$aligner'
+            ##--codons
+            '$core_threshold'
+            '$core_subset_choice'
+            '$core_entropy_filter'
+            '$min_trailing_support'
+            '$trailing_recursive'
+            '$edge_support_threshold'
+            '$length_outlier_support_proportion'
+            '$remove_by_consensus'
+            '$high_var_flag'
+            '$min_edge_support_sv'
+            '$all_seq_in_graph'
+            '$no_clean_edges'
 
             #for $f in $filenames
                 '$f'
@@ -149,14 +143,6 @@
             <option value="combinedproteincds">Fasta file which includes all protein sequence for both the annotated genes and those refound by the program in Fasta format</option>
             <option value="coregenealignmentfiltered">Filtered version of the core genome alignment in Fasta format</option>
         </param>
-        <section name="optional" title="Optional arguments" expanded="false">
-            <!--Fill in additional options-->
-            <param name="help" type="boolean" value="false" label="Show Help Message" help="Show the help message and exit." />
-            <param name="cpu_threads" type="integer" value="10" label="Number of CPU threads" help="Set the number of CPU threads for the alignment process. Default is 1" />
-            <param name="codon_table" type="integer" value="11" label="Codon Table" help="The codon table to use for translation. Default is 11" />
-            <param name="quiet" type="boolean" value="false" label="Suppress Additional Output" help="suppress additional output." />
-            <param name="version" type="boolean" value="false" label="Show Program Version" help="Show program's version number and exit." />
-        </section>
     </inputs>
 
     <outputs>
@@ -188,16 +174,15 @@
 
     <tests>
         <!-- Hint: You can use [ctrl+alt+t] after defining the inputs/outputs to auto-scaffold some basic test cases. -->
-        <test expect_num_outputs="1">
-            <!--TODO: auto-generated test case. Please fill in the required values-->
+        <test expect_num_outputs="3">
             <param name="gff_input_selector" value="individual"/>
-            <param name="gffs" value="test_data.gff" ftype="gff3"/>
+            <param name="gffs" value="ex1.gff" ftype="gff3"/>
             <param name="mode" value="strict"/>
             <param name="remove_invalid_genes" value="false"/>
             <param name="alignment" value="core"/>
             <param name="aligner" value="mafft"/>
-            <output name="gene_p_a" file="gene_p_a.csv" ftype="csv"/>
-            <output name="core_gene_aln" file="core_gene_alignment.aln" ftype="fasta"/>
+            <output name="gene_p_a" file="out/gene_p_a.csv" ftype="csv"/>
+            <output name="core_gene_aln" file="out/core_gene_alignment.aln" ftype="fasta"/>
         </test>
     </tests>
     <help><![CDATA[
@@ -205,12 +190,6 @@
 **Panaroo**
 
 Panaroo is a pangenome analysis tool specifically designed to analyze bacterial genomes. Its main goal is to create accurate pangenomes by identifying and grouping genes that are shared or unique across multiple genomes within a species. Panaroo is built to overcome some of the challenges in pangenome analysis, especially issues with paralogs (genes that arise by duplication within the same genome) and annotation inconsistencies between different genome assemblies.
-
-**Input**
-
-
-**Output**
-
 
     ]]></help>
     <citations>

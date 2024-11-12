@@ -34,8 +34,6 @@
             '$alignment' 
             '$aligner'
             '$core_threshold'
-            '$core_subset_choice'
-            '$core_entropy_filter'
             '$min_trailing_support'
             '$trailing_recursive'
             '$edge_support_threshold'
@@ -48,50 +46,38 @@
     ]]></command>
     
     <inputs>
-        <param type="data" name="input1" format="gff,gff3" label="select gff inputs to Panaroo" help="Select the files you wish to send to Panaroo, must be in gff3 format."/>
+        <param type="data" name="input1" format="gff,gff3" label="Select gff inputs to Panaroo" help="Select the files you wish to analyze with Panaroo, must be in gff3 format."/>
         <!--MODES-->
-        <param name="mode" type="select" value="strict" label="filtering mode" help="Change a number of defaults to either favour strict, moderate or sensitive filtering">
-            <option value="strict">Strict</option>
+        <param name="mode" type="select" label="filtering mode" help="Change a number of defaults to either favour strict, moderate or sensitive filtering">
+            <option value="strict" selected="True">Strict</option>
             <option value="moderate">Moderate</option>
             <option value="sensitive ">Sensitive</option>
         </param>
-        <param name="remove_invalid_genes" type="boolean" value="false" label="Remove Invalid Genes" help="Removes annotations that do not conform to the expected Prokka format. Disabled by default."/>
+        <param name="remove_invalid_genes" type="boolean" truevalue="--remove-invalid-genes" falsevalue="" label="Remove Invalid Genes" help="Removes annotations that do not conform to the expected Prokka format. Disabled by default."/>
         <!--Gene Alignment-->
-        <param name="alignment" type="select" value="None" label="Alignment" help="Run MSA either for the core genome or for every gene cluster.">
+        <param name="alignment" type="select" label="Alignment" help="Run MSA either for the core genome or for every gene cluster.">
             <option value="core">Core genome alignment</option>
             <option value="pan">Pan-genome alignment</option>
+            <option value="none" selected="True">None</option>
         </param>
-        <param name="aligner" type="select" value="mafft" label="Alignment method" help="Choose an aligner from either PRANK, Clustal or the default, MAFFT.">
-            <option value="mafft">MAFFT</option>
+        <param name="aligner" type="select" label="Alignment method" help="Choose an aligner from either PRANK, Clustal or the default, MAFFT.">
+            <option value="mafft" selected="True">MAFFT</option>
             <option value="clustal">Clustal</option>
             <option value="prank">PRANK</option>
             <option value="none">None</option>
         </param>
         <param name="core_threshold" type="float" value="0.95" label="Core gene threshold" help="Set the frequency of a gene in the your sample required to classify it as 'core'." />
-        <conditional name="core_subset_choice">
-            <param name="core_subset_selector" type="select" label="Core Subset Option">
-                <option value="all">All Genes</option>
-                <option value="subset">Subset to Specific Number</option>
-            </param>
-            <when value="all">
-                <param name="core_subset" type="text" value="all" label="Core Subset" help="Randomly subset the core genome to these many genes. Default is all." />
-            </when>
-            <when value="subset">
-                <param name="core_subset" type="float" label="Core Subset" help="Specify a number of genes for the core subset." />
-            </when>
-        </conditional>
-        <param name="core_entropy_filter" type="float" value="0.0" label="Core Entropy Filter" help="Manually set the Block Mapping and Gathering with Entropy filter. Can be between 0.0 and 1.0." />
         <!--Cluster Thresholds-->
         <param name="threshold" type="float" value="0.98" label="Initial Clustering Threshold" help="Set the threshold for gene clustering. Default is 0.98."/>
         <param name="len_dif_percent" type="float" value="0.98" label="Length Difference Percent" help="Set the length difference percent for initial gene clustering. Default is 0.98."/>
         <param name="family_identity" type="float" value="0.7" label="Family Sequence Identity Level" help="Set the level at which Panaroo collapses genes into putative families. Default is 0.7."/>
         <param name="family_len_dif_percent" type="float" value="0.0" label="Family Len Dif Percent" help="Set the length difference cutoff at the gene family level. Default is 0.0."/>
-        <param name="merge_paralogs" type="boolean" value="false" label="Merge Paralogs" help="Merging paralogs can be enabled. Disabled by default."/>
+        <param name="merge_paralogs" type="boolean" truevalue="--merge_paralogs" falsevalue="" label="Merge Paralogs" help="Merging paralogs can be enabled. Disabled by default."/>
         <!--Refinding Genes-->
         <param name="search_radius" type="integer" value="5000" label="Refinding Search Radius" help="Set radius for the search in nucleotides for refinding genes. Default is 5000."/>
         <param name="refind_prop_match" type="float" value="0.5" label="Refinding Proportion Match" help="Set the proportion of the missing gene to consider as a match for refinding. Default is 0.5."/>
-        <param name="refind_mode" type="select" value="default" label="Refind Mode" help="Set the stringency mode at which to re-find genes.">
-            <option value="default">Default</option>
+        <param name="refind_mode" type="select" label="Refind Mode" help="Set the stringency mode at which to re-find genes.">
+            <option value="default" selected="True">Default</option>
             <option value="strict">Strict</option>
             <option value="off ">Off</option>
         </param>
@@ -100,22 +86,11 @@
         <param name="trailing_recursive" type="integer" value="1" label="Trailing Recursive" help="Number of times to perform recursive trimming of low support nodes near the end of contigs"/>
         <param name="edge_support_threshold" type="float" value="0.1" label="Edge Support Threshold" help="Minimum support required to keep an edge that has been flagged as a possible mis-assembly."/>
         <param name="length_outlier_support_proportion" type="float" value="0.01" label="Length Outlier Support Proportion" help="Proportion of genomes supporting a gene with a length more than 1.5x outside the interquatile range for genes in the same cluster. Default is 0.01."/>
-        <param name="remove_by_consensus" type="boolean" value="false" label="Remove By Consensus" help="If a gene is called in the same region with similar sequence a minority of the time, remove it."/>
+        <param name="remove_by_consensus" type="boolean" truevalue="--remove_by_consensus" falsevalue="" label="Remove By Consensus" help="If a gene is called in the same region with similar sequence a minority of the time, remove it."/>
         <param name="high_var_flag" type="integer" value="5" label="High Var Flag" help="Minimum number of nested cycles to call a highly variable gene region. Default is 5."/>
         <param name="min_edge_support_sv" type="integer" value="1" label="Min Edge Support SV" help="Minimum edge support required to call structural variants in the presence/absence sv file"/>
         <param name="all_seq_in_graph" type="boolean" label="All Seq in Graph" truevalue="--all_seq_in_graph" falsevalue="" help="Retains all DNA sequence for each gene cluster in the graph output. Off by Default." />
         <param name="no_clean_edges" type="boolean" label="No Clean Edges" truevalue="--no_clean_edges" falsevalue="" help="Turn off edge filtering in the final output graph." />
-        <!--ADDITIONAL OUTPUT -->
-        <param name="outputs" type="select" label="Additional outputs" help="" multiple="true" display="checkboxes">
-            <!--Fill in the additional output types (see in OUTPUTS where '<filter></filter>' is and put in these)-->
-            <option value="genepa_rtab">Gene Presence Absence file in Rtab format</option>
-            <option value="structpresenceabsence">Presence and absence of different genomic rearrangement events in Csv format</option>
-            <option value="pangenomeref">Linear reference genome of all the genes found in the dataset in Fasta format</option>
-            <option value="genedata">Links each gene sequence and annotation to the internal representations used in Csv format</option>
-            <option value="combineddnacds">Includes all nucleotide sequence for both the annotated genes and those refound by the program in Fasta format</option>
-            <option value="combinedproteincds">Fasta file which includes all protein sequence for both the annotated genes and those refound by the program in Fasta format</option>
-            <option value="coregenealignmentfiltered">Filtered version of the core genome alignment in Fasta format</option>
-        </param>
     </inputs>
 
     <outputs>

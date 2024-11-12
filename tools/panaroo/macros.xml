@@ -6,7 +6,6 @@
     <xml name="requirements">
         <requirements>
         <requirement type="package" version="@TOOL_VERSION@">panaroo</requirement>
-            <yield/>
         </requirements>
     </xml>
 

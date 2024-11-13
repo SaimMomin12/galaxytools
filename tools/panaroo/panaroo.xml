@@ -14,39 +14,32 @@
         <edam_operation>operation_0337</edam_operation> <!-- "Visualisation" -->
     </edam_operations>
     <xrefs>
-        <xref type="bio.tools">panaroo</xref>
+        <xref type="bio.tools">Panaroo</xref>
     </xrefs>
     
     <command detect_errors="exit_code"><![CDATA[
         panaroo
             -i '$input1'
             -o out
-            '$mode'
+            --clean-mode '$mode'
             '$remove_invalid_genes'
-            '$threshold'
-            '$family_identity'
+            --threshold '$threshold'
+            --family_threshold '$family_identity'
             '$len_dif_percent'
-            '$family_len_dif_percent'
             '$merge_paralogs'
             '$search_radius'
             '$refind_prop_match'
             '$refind_mode'
             '$alignment' 
             '$aligner'
-            '$core_threshold'
-            '$min_trailing_support'
-            '$trailing_recursive'
-            '$edge_support_threshold'
-            '$length_outlier_support_proportion'
-            '$remove_by_consensus'
-            '$high_var_flag'
-            '$min_edge_support_sv'
-            '$all_seq_in_graph'
-            '$no_clean_edges'
+            
+        #for $f in $input1
+            '$f'
+        #end for
     ]]></command>
     
     <inputs>
-        <param type="data" name="input1" format="gff,gff3" label="Select gff inputs to Panaroo" help="Select the files you wish to analyze with Panaroo, must be in gff3 format."/>
+        <param type="data" name="input1" format="gff,gff3" multiple="true" label="Select gff inputs to Panaroo" help="Select the files you wish to analyze with Panaroo, must be in gff3 format."/>
         <!--MODES-->
         <param name="mode" type="select" label="filtering mode" help="Change a number of defaults to either favour strict, moderate or sensitive filtering">
             <option value="strict" selected="True">Strict</option>
@@ -66,12 +59,10 @@
             <option value="prank">PRANK</option>
             <option value="none">None</option>
         </param>
-        <param name="core_threshold" type="float" value="0.95" label="Core gene threshold" help="Set the frequency of a gene in the your sample required to classify it as 'core'." />
         <!--Cluster Thresholds-->
         <param name="threshold" type="float" value="0.98" label="Initial Clustering Threshold" help="Set the threshold for gene clustering. Default is 0.98."/>
         <param name="len_dif_percent" type="float" value="0.98" label="Length Difference Percent" help="Set the length difference percent for initial gene clustering. Default is 0.98."/>
         <param name="family_identity" type="float" value="0.7" label="Family Sequence Identity Level" help="Set the level at which Panaroo collapses genes into putative families. Default is 0.7."/>
-        <param name="family_len_dif_percent" type="float" value="0.0" label="Family Len Dif Percent" help="Set the length difference cutoff at the gene family level. Default is 0.0."/>
         <param name="merge_paralogs" type="boolean" truevalue="--merge_paralogs" falsevalue="" label="Merge Paralogs" help="Merging paralogs can be enabled. Disabled by default."/>
         <!--Refinding Genes-->
         <param name="search_radius" type="integer" value="5000" label="Refinding Search Radius" help="Set radius for the search in nucleotides for refinding genes. Default is 5000."/>
@@ -82,47 +73,16 @@
             <option value="off ">Off</option>
         </param>
         <!--GRAPH CORRECTION -->
-        <param name="min_trailing_support" type="integer" value="0" label="Min Trailing Support" help="Minimum cluster size to keep a gene called at the end of a contig."/>
-        <param name="trailing_recursive" type="integer" value="1" label="Trailing Recursive" help="Number of times to perform recursive trimming of low support nodes near the end of contigs"/>
-        <param name="edge_support_threshold" type="float" value="0.1" label="Edge Support Threshold" help="Minimum support required to keep an edge that has been flagged as a possible mis-assembly."/>
-        <param name="length_outlier_support_proportion" type="float" value="0.01" label="Length Outlier Support Proportion" help="Proportion of genomes supporting a gene with a length more than 1.5x outside the interquatile range for genes in the same cluster. Default is 0.01."/>
-        <param name="remove_by_consensus" type="boolean" truevalue="--remove_by_consensus" falsevalue="" label="Remove By Consensus" help="If a gene is called in the same region with similar sequence a minority of the time, remove it."/>
-        <param name="high_var_flag" type="integer" value="5" label="High Var Flag" help="Minimum number of nested cycles to call a highly variable gene region. Default is 5."/>
-        <param name="min_edge_support_sv" type="integer" value="1" label="Min Edge Support SV" help="Minimum edge support required to call structural variants in the presence/absence sv file"/>
-        <param name="all_seq_in_graph" type="boolean" label="All Seq in Graph" truevalue="--all_seq_in_graph" falsevalue="" help="Retains all DNA sequence for each gene cluster in the graph output. Off by Default." />
-        <param name="no_clean_edges" type="boolean" label="No Clean Edges" truevalue="--no_clean_edges" falsevalue="" help="Turn off edge filtering in the final output graph." />
     </inputs>
 
     <outputs>
         <data format="csv" name="gene_p_a" label="${tool.name} on ${on_string} Gene Presence Absence" from_work_dir="out/gene_presence_absence.csv"/>
         <data format="fasta" name="core_gene_aln" label="${tool.name} on ${on_string} Core Gene Alignment" from_work_dir="out/core_gene_alignment.aln"/>
-        <data format="gml" name="final_graph" label="${tool.name} on ${on_string} Final Graph" from_work_dir="out/final_graph.gml"/>
-        <data format="txt" name="gene_p_a_rtab" label="${tool.name} on ${on_string} Gene Presence Absence Rtab" from_work_dir="out/gene_presence_absence.Rtab">
-            <filter>outputs and 'genepa_rtab' in outputs</filter>
-        </data>
-        <data format="csv" name="struct_presence_absence" label="${tool.name} on ${on_string} Struct Presence Absence" from_work_dir="out/struct_presence_absence.csv">
-            <filter>outputs and 'structpresenceabsence' in outputs</filter>
-        </data>
-        <data format="fasta" name="pan_genome_ref" label="${tool.name} on ${on_string} pan-genome reference" from_work_dir="out/pan_genome_reference.fa">
-            <filter>outputs and 'pangenomeref' in outputs</filter>
-        </data>
-        <data format="csv" name="gene_data" label="${tool.name} on ${on_string} Gene Data" from_work_dir="out/gene_data.csv">
-            <filter>outputs and 'genedata' in outputs</filter>
-        </data> 
-        <data format="fasta" name="combined_DNA_CDS" label="${tool.name} on ${on_string} Combined DNA CDS" from_work_dir="out/combined_DNA_CDS.fasta">
-            <filter>outputs and 'combineddnacds' in outputs</filter>
-        </data>
-        <data format="fasta" name="combined_protein_CDS" label="${tool.name} on ${on_string} Combined Protein CDS" from_work_dir="out/combined_protein_CDS.fasta">
-            <filter>outputs and 'combinedproteincds' in outputs</filter>
-        </data> 
-        <data format="fasta" name="core_gene_alignment_filtered" label="${tool.name} on ${on_string} Core Gene Alignment Filtered" from_work_dir="out/core_gene_alignment_filtered.aln">
-            <filter>outputs and 'coregenealignmentfiltered' in outputs</filter>
-        </data>
     </outputs>
 
     <tests>
         <!-- Hint: You can use [ctrl+alt+t] after defining the inputs/outputs to auto-scaffold some basic test cases. -->
-        <test expect_num_outputs="3">
+        <test expect_num_outputs="2">
             <param name="input1" value="ex1.gff" ftype="gff3"/>
             <param name="mode" value="strict"/>
             <param name="remove_invalid_genes" value="false"/>
@@ -130,12 +90,29 @@
             <param name="aligner" value="mafft"/>
             <output name="gene_p_a" file="out/gene_p_a.csv" ftype="csv"/>
             <output name="core_gene_aln" file="out/core_gene_alignment.aln" ftype="fasta"/>
-            <output name="final_graph" file="out/final_graph.gml" ftype="gml"/>
+        </test>
+        <test expect_num_outputs="2">
+            <param name="input1" value="ex1.gff" ftype="gff3"/>
+            <param name="mode" value="strict"/>
+            <output name="gene_p_a" file="out/gene_p_a.csv" ftype="csv"/>
+            <output name="core_gene_aln" file="out/core_gene_alignment.aln" ftype="fasta"/>
+        </test>
+        <test expect_num_outputs="2">
+            <param name="input1" value="ex1.gff" ftype="gff3"/>
+            <param name="remove_invalid_genes" value="false"/>
+            <output name="gene_p_a" file="out/gene_p_a.csv" ftype="csv"/>
+            <output name="core_gene_aln" file="out/core_gene_alignment.aln" ftype="fasta"/>
         </test>
     </tests>
     <help><![CDATA[
 
 **Panaroo**
+Galaxy does not support gml files.
+
+Found in outputs:
+<data format="gml" name="final_graph" label="${tool.name} on ${on_string} Final Graph" from_work_dir="out/final_graph.gml"/>
+Found in tests:
+<output name="final_graph" file="out/final_graph.gml" ftype="gml"/>
 
 Panaroo is a pangenome analysis tool specifically designed to analyze bacterial genomes. Its main goal is to create accurate pangenomes by identifying and grouping genes that are shared or unique across multiple genomes within a species. Panaroo is built to overcome some of the challenges in pangenome analysis, especially issues with paralogs (genes that arise by duplication within the same genome) and annotation inconsistencies between different genome assemblies.
 

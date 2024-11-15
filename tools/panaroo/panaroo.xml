@@ -22,20 +22,16 @@
             -i '$input1'
             -o out
             --clean-mode '$mode'
-            '$remove_invalid_genes'
-            --threshold '$threshold'
+            $remove_invalid_genes ##-------------- --remove-invalid-genes '$remove_invalid_genes'
+            --threshold '$threshold' 
             --family_threshold '$family_identity'
-            '$len_dif_percent'
-            '$merge_paralogs'
-            '$search_radius'
-            '$refind_prop_match'
-            '$refind_mode'
-            '$alignment' 
-            '$aligner'
-            
-        #for $f in $input1
-            '$f'
-        #end for
+            --len_dif_percent '$len_dif_percent'
+            $merge_paralogs ##----------------- --merge_paralogs '$merge_paralogs'
+            --search_radius '$search_radius'
+            --refind_prop_match '$refind_prop_match'
+            --refind-mode '$refind_mode'
+            -a '$alignment'
+            --aligner '$aligner'
     ]]></command>
     
     <inputs>
@@ -49,9 +45,8 @@
         <param name="remove_invalid_genes" type="boolean" truevalue="--remove-invalid-genes" falsevalue="" label="Remove Invalid Genes" help="Removes annotations that do not conform to the expected Prokka format. Disabled by default."/>
         <!--Gene Alignment-->
         <param name="alignment" type="select" label="Alignment" help="Run MSA either for the core genome or for every gene cluster.">
-            <option value="core">Core genome alignment</option>
+            <option value="core" selected="True">Core genome alignment</option>
             <option value="pan">Pan-genome alignment</option>
-            <option value="none" selected="True">None</option>
         </param>
         <param name="aligner" type="select" label="Alignment method" help="Choose an aligner from either PRANK, Clustal or the default, MAFFT.">
             <option value="mafft" selected="True">MAFFT</option>
@@ -93,15 +88,18 @@
         </test>
         <test expect_num_outputs="2">
             <param name="input1" value="ex1.gff" ftype="gff3"/>
-            <param name="mode" value="strict"/>
+            <param name="mode" value="moderate"/>
             <output name="gene_p_a" file="out/gene_p_a.csv" ftype="csv"/>
             <output name="core_gene_aln" file="out/core_gene_alignment.aln" ftype="fasta"/>
         </test>
         <test expect_num_outputs="2">
             <param name="input1" value="ex1.gff" ftype="gff3"/>
-            <param name="remove_invalid_genes" value="false"/>
-            <output name="gene_p_a" file="out/gene_p_a.csv" ftype="csv"/>
-            <output name="core_gene_aln" file="out/core_gene_alignment.aln" ftype="fasta"/>
+            <param name="mode" value="strict"/>
+        </test>
+        <test expect_num_outputs="2">
+            <param name="input1" value="ex1.gff" ftype="gff3"/>
+            <param name="mode" value="strict"/>
+            <param name="remove_invalid_genes" value="true"/>
         </test>
     </tests>
     <help><![CDATA[

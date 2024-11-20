@@ -19,13 +19,13 @@
     <expand macro="requirements"/>
     <command detect_errors="exit_code"><![CDATA[
         ## Create the 'out' directory if it doesn't exist
-        mkdir -p test-data/out &&
+        mkdir -p out/ &&
         panaroo
             #if $input1:
                 -i ${str($input1).replace(',', ' ')}
             #end if
             -o out
-            --clean-mode '$modes.clean_mode'
+            --clean-mode '${modes.clean_mode}'
             #if $remove_invalid_genes:
                 $modes.remove_invalid_genes
             #end if
@@ -37,6 +37,9 @@
             #end if
             #if $len_dif_percent:
                 --len_dif_percent '$matching.len_dif_percent'
+            #end if
+            #if $family_len_dif_percent:
+                --family_len_dif_percent '$matching.family_len_dif_percent'
             #end if
             #if $merge_paralogs:
                 $matching.merge_paralogs
@@ -80,6 +83,18 @@
             #if $aligner:
                 --aligner '$gene_alignment.aligner'
             #end if
+            #if $codons:
+                --codons '$gene_alignment.codons'
+            #end if
+            #if $core_threshold:
+                --core_threshold '$gene_alignment.core_threshold'
+            #end if
+            #if $core_subset:
+                --core_subset '$gene_alignment.core_subset'
+            #end if
+            #if $core_entropy_filter:
+                --core_entropy_filter '$gene_alignment.core_entropy_filter'
+            #end if
     ]]></command>
     
     <inputs>
@@ -98,6 +113,7 @@
             <param argument="--threshold" type="float" optional="true" value="0.98" label="Sequence identity threshold" help="Set the threshold for gene clustering."/>
             <param argument="--family_threshold" type="float" optional="true" value="0.7" label="Family Sequence Identity Level" help="Set the level at which Panaroo collapses genes into putative families."/>
             <param argument="--len_dif_percent" type="float" optional="true" value="0.98" label="Length Difference Percent" help="Set the length difference percent for initial gene clustering."/>
+            <param argument="--family_len_dif_percent" type="float" optional="true" value="0.0" label="Family Length Difference Percent" help="Set the length difference cutoff at the gene family level."/>
             <param argument="--merge_paralogs" type="boolean" optional="true" truevalue="--merge_paralogs" falsevalue="" label="Merge Paralogs"/>
         </section>
         <!--Refind-->
@@ -133,6 +149,10 @@
                 <option value="clustal">Clustal</option>
                 <option value="prank">PRANK</option>
             </param>
+            <param argument="--codons" type="boolean" optional="true" label="Codons" truevalue="--codons" falsevalue="" help="Generate codon alignments by aligning sequences at the protein level"/>
+            <param argument="--core_threshold" type="float" optional="true" value="0.95" label="Core Threshold"  help="Core-genome sample threshold"/>
+            <param argument="--core_subset" type="boolean" optional="true" label="Core Subset" truevalue="--core_subset" falsevalue=""  help="Core-genome sample threshold"/>
+            <param argument="--core_entropy_filter" type="float" optional="true" value="0.5" label="Core Entropy Filter"  help="Manually set the Block Mapping and Gathering with Entropy (BMGE) filter. By default this is set using the Tukey outlier method."/>
         </section>
     </inputs>
 
@@ -140,32 +160,39 @@
         <data format="csv" name="gene_p_a" label="${tool.name} on ${on_string} Gene Presence Absence" from_work_dir="out/gene_presence_absence.csv"/>
         <data format="fasta" name="core_gene_aln" label="${tool.name} on ${on_string} Core Gene Alignment" from_work_dir="out/core_gene_alignment.aln"/>
         <data format="txt" name="final_graph" label="${tool.name} on ${on_string} Final Graph" from_work_dir="out/final_graph.txt"/>
+
+        <data format="txt" name="gene_p_a_rtab" label="${tool.name} on ${on_string} Gene Presence Absence Rtab" from_work_dir="out/gene_presence_absence.Rtab">
+            <filter>outputs and 'genepa_rtab' in outputs</filter>
+        </data>
+        <data format="csv" name="struct_presence_absence" label="${tool.name} on ${on_string} Struct Presence Absence" from_work_dir="out/struct_presence_absence.csv">
+            <filter>outputs and 'structpresenceabsence' in outputs</filter>
+        </data>
+        <data format="fasta" name="pan_genome_ref" label="${tool.name} on ${on_string} pan-genome reference" from_work_dir="out/pan_genome_reference.fa">
+            <filter>outputs and 'pangenomeref' in outputs</filter>
+        </data>
+        <data format="csv" name="gene_data" label="${tool.name} on ${on_string} Gene Data" from_work_dir="out/gene_data.csv">
+            <filter>outputs and 'genedata' in outputs</filter>
+        </data> 
+        <data format="fasta" name="combined_DNA_CDS" label="${tool.name} on ${on_string} Combined DNA CDS" from_work_dir="out/combined_DNA_CDS.fasta">
+            <filter>outputs and 'combineddnacds' in outputs</filter>
+        </data>
+        <data format="fasta" name="combined_protein_CDS" label="${tool.name} on ${on_string} Combined Protein CDS" from_work_dir="out/combined_protein_CDS.fasta">
+            <filter>outputs and 'combinedproteincds' in outputs</filter>
+        </data> 
+        <data format="fasta" name="core_gene_alignment_filtered" label="${tool.name} on ${on_string} Core Gene Alignment Filtered" from_work_dir="out/core_gene_alignment_filtered.aln">
+            <filter>outputs and 'coregenealignmentfiltered' in outputs</filter>
+        </data>
     </outputs>
 
     <tests>
-        <test expect_num_outputs="3">
+        <test expect_num_outputs="10">
             <param name="input1" value="ex1.gff,ex2.gff" ftype="gff3"/>
             <param name="clean_mode" value="strict"/>
-            <output name="gene_p_a" file="out/gene_p_a.csv" ftype="csv"/>
-            <output name="core_gene_aln" file="out/core_gene_alignment.aln" ftype="fasta"/>
-        </test> 
-        <test expect_num_outputs="3">
-            <param name="input1" value="ex1.gff,ex2.gff" ftype="gff3"/>
-            <param name="clean_mode" value="moderate"/>
             <output name="gene_p_a" file="out/gene_p_a.csv" ftype="csv"/>
             <output name="core_gene_aln" file="out/core_gene_alignment.aln" ftype="fasta"/>
             <output name="final_graph" file="out/final_graph.txt" ftype="txt"/>
         </test>
-        <test expect_num_outputs="3">
-            <param name="input1" value="ex1.gff,ex2.gff" ftype="gff3"/>
-            <param name="clean_mode" value="strict"/>
-            <param name="remove_invalid_genes" value="true"/>
-            <param name="alignment" value="core"/>
-            <param name="aligner" value="mafft"/>
-            <output name="gene_p_a" file="out/gene_p_a.csv" ftype="csv"/>
-            <output name="core_gene_aln" file="out/core_gene_alignment.aln" ftype="fasta"/>
-        </test>
-        <test expect_num_outputs="3">
+        <test expect_num_outputs="10">
             <param name="input1" value="ex1.gff,ex2.gff" ftype="gff3"/>
             <param name="clean_mode" value="strict"/>
             <param name="remove_invalid_genes" value="true"/>
@@ -174,6 +201,42 @@
             <output name="gene_p_a" file="out/gene_p_a.csv" ftype="csv"/>
             <output name="core_gene_aln" file="out/core_gene_alignment.aln" ftype="fasta"/>
             <output name="final_graph" file="out/final_graph.txt" ftype="txt"/>
+        </test>
+        <test expect_num_outputs="10">
+            <param name="input1" value="ex1.gff,ex2.gff" ftype="gff3"/>
+            <param name="clean_mode" value="strict"/>
+            <param name="remove_invalid_genes" value="true"/>
+            <param name="threshold" value="0.98"/>
+            <param name="family_threshold" value="0.7"/>
+            <param name="len_dif_percent" value="0.98"/>
+            <param name="merge_paralogs" value="true"/>
+            <param name="search_radius" value="5000"/>
+            <param name="refind_prop_match" value="0.5"/>
+            <param name="refind_mode" value="strict"/>
+            <param name="min_trailing_support" value="10"/>
+            <param name="edge_support_threshold" value="0.1"/>
+            <param name="length_outlier_support_proportion" value="0.01"/>
+            <param name="remove_by_consensus" value="true"/>
+            <param name="high_var_flag" value="5"/>
+            <param name="min_edge_support_sv" value="1"/>
+            <param name="all_seq_in_graph" value="true"/>
+            <param name="no_clean_edges" value="true"/>
+            <param name="alignment" value="pan"/>
+            <param name="aligner" value="mafft"/>
+            <param name="codons" value="true"/>
+            <param name="core_threshold" value="0.95"/>
+            <param name="core_subset" value="true"/>
+            <param name="core_entropy_filter" value="0.5"/>        
+            <output name="gene_p_a" file="out/gene_p_a.csv" ftype="csv"/>
+            <output name="core_gene_aln" file="out/core_gene_alignment.aln" ftype="fasta"/>
+            <output name="final_graph" file="out/final_graph.txt" ftype="txt"/>
+            <output name="gene_p_a_rtab" file="out/gene_presence_absence.Rtab" ftype="txt"/>
+            <output name="struct_presence_absence" file="out/struct_presence_absence.csv" ftype="csv"/>
+            <output name="pan_genome_ref" file="out/pan_genome_reference.fa" ftype="fasta"/>
+            <output name="gene_data" file="out/gene_data.csv" ftype="csv"/>
+            <output name="combined_DNA_CDS" file="out/combined_DNA_CDS.fasta" ftype="fasta"/>
+            <output name="combined_protein_CDS" file="out/combined_protein_CDS.fasta" ftype="fasta"/>
+            <output name="core_gene_alignment_filtered" file="out/core_gene_alignment_filtered.aln" ftype="fasta"/>
         </test>
     </tests>
     <help><![CDATA[

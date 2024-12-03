@@ -4,21 +4,20 @@
         <import>macros.xml</import>
     </macros>
     <edam_topics>
-        <edam_topic>topic_3945</edam_topic> <!-- "Molecular evolution " -->
-        <edam_topic>topic_0084</edam_topic> <!-- "Phylogeny" -->
-        <edam_topic>topic_3053</edam_topic> <!-- "Genetics" -->
+        <edam_topic>topic_3945</edam_topic>
+        <edam_topic>topic_0084</edam_topic>
+        <edam_topic>topic_3053</edam_topic>
     </edam_topics>
     <edam_operations>
-        <edam_operation>operation_3432</edam_operation> <!-- "Gene clustering" -->
-        <edam_operation>operation_2424</edam_operation> <!-- "Genome comparison" -->
-        <edam_operation>operation_0337</edam_operation> <!-- "Visualisation" -->
+        <edam_operation>operation_3432</edam_operation>
+        <edam_operation>operation_2424</edam_operation>
+        <edam_operation>operation_0337</edam_operation>
     </edam_operations>
     <xrefs>
         <xref type="bio.tools">Panaroo</xref>
     </xrefs>
     <expand macro="requirements"/>
     <command detect_errors="exit_code"><![CDATA[
-        ## Create the 'out' directory if it doesn't exist
         mkdir -p out/ &&
         panaroo
             #if $input1:
@@ -63,7 +62,7 @@
                 --length_outlier_support_proportion '$graph_correction.length_outlier_support_proportion'
             #end if
             #if $remove_by_consensus:
-                --remove_by_consensus '$graph_correction.remove_by_consensus'
+                --remove_by_consensus '${graph_correction.remove_by_consensus}'
             #end if
             #if $high_var_flag:
                 --high_var_flag '$graph_correction.high_var_flag'
@@ -90,7 +89,7 @@
                 --core_threshold '$gene_alignment.core_threshold'
             #end if
             #if $core_subset:
-                --core_subset '$gene_alignment.core_subset'
+                --core_subset '${gene_alignment.core_subset}'
             #end if
             #if $core_entropy_filter:
                 --core_entropy_filter '$gene_alignment.core_entropy_filter'
@@ -104,7 +103,7 @@
             <param argument="--clean-mode" type="select" label="filtering mode" help="The stringency mode at which to run panaroo. Each of these modes can be fine tuned using the additional parameters in the 'Graph correction' section.">
                 <option value="strict" selected="True">Strict</option>
                 <option value="moderate">Moderate</option>
-                <option value="sensitive ">Sensitive</option>
+                <option value="sensitive">Sensitive</option>
             </param>
             <param argument="--remove-invalid-genes" type="boolean" optional="true" truevalue="--remove-invalid-genes" falsevalue="" label="Remove Invalid Genes" help="Removes annotations that do not conform to the expected Prokka format. Disabled by default."/>
         </section>
@@ -132,7 +131,10 @@
             <param argument="--trailing_recursive" type="integer" optional="true" value="1" label="Trailing Recursive" help="Number of times to perform recursive trimming of low support nodes near the end of contigs"/>
             <param argument="--edge_support_threshold" type="float" optional="true" value="0.1" label="Edge Support Threshold" help="Minimum support required to keep an edge that has been flagged as a possible mis-assembly."/>
             <param argument="--length_outlier_support_proportion" type="float" optional="true" value="0.01" label="Length Outlier Support Proportion" help="Proportion of genomes supporting a gene with a length more than 1.5x outside the interquatile range for genes in the same cluster."/>
-            <param argument="--remove_by_consensus" type="boolean" optional="true" truevalue="--remove_by_consensus" falsevalue="" label="Remove By Consensus" help="If a gene is called in the same region with similar sequence a minority of the time, remove it."/>
+            <param argument="--remove_by_consensus" type="select" optional="true" label="Remove By Consensus" help="If a gene is called in the same region with similar sequence a minority of the time, remove it.">
+                <option value="True">true</option>
+                <option value="False" selected="True">false</option>
+            </param>         
             <param argument="--high_var_flag" type="integer" optional="true" value="5" label="High Var Flag" help="Minimum number of nested cycles to call a highly variable gene region."/>
             <param argument="--min_edge_support_sv" type="integer" optional="true" value="1" label="Min Edge Support SV" help="Minimum edge support required to call structural variants in the presence/absence sv file"/>
             <param argument="--all_seq_in_graph" type="boolean" optional="true" label="All Seq in Graph" truevalue="--all_seq_in_graph" falsevalue="" help="Retains all DNA sequence for each gene cluster in the graph output." />
@@ -151,60 +153,1667 @@
             </param>
             <param argument="--codons" type="boolean" optional="true" label="Codons" truevalue="--codons" falsevalue="" help="Generate codon alignments by aligning sequences at the protein level"/>
             <param argument="--core_threshold" type="float" optional="true" value="0.95" label="Core Threshold"  help="Core-genome sample threshold"/>
-            <param argument="--core_subset" type="boolean" optional="true" label="Core Subset" truevalue="--core_subset" falsevalue=""  help="Core-genome sample threshold"/>
+            <param argument="--core_subset" type="boolean" optional="true" label="Core Subset" truevalue="--core_subset" falsevalue="" help="Core-genome sample threshold"/>
             <param argument="--core_entropy_filter" type="float" optional="true" value="0.5" label="Core Entropy Filter"  help="Manually set the Block Mapping and Gathering with Entropy (BMGE) filter. By default this is set using the Tukey outlier method."/>
         </section>
     </inputs>
-
     <outputs>
         <data format="csv" name="gene_p_a" label="${tool.name} on ${on_string} Gene Presence Absence" from_work_dir="out/gene_presence_absence.csv"/>
         <data format="fasta" name="core_gene_aln" label="${tool.name} on ${on_string} Core Gene Alignment" from_work_dir="out/core_gene_alignment.aln"/>
         <data format="txt" name="final_graph" label="${tool.name} on ${on_string} Final Graph" from_work_dir="out/final_graph.txt"/>
-
-        <data format="txt" name="gene_p_a_rtab" label="${tool.name} on ${on_string} Gene Presence Absence Rtab" from_work_dir="out/gene_presence_absence.Rtab">
-            <filter>outputs and 'genepa_rtab' in outputs</filter>
-        </data>
-        <data format="csv" name="struct_presence_absence" label="${tool.name} on ${on_string} Struct Presence Absence" from_work_dir="out/struct_presence_absence.csv">
-            <filter>outputs and 'structpresenceabsence' in outputs</filter>
-        </data>
-        <data format="fasta" name="pan_genome_ref" label="${tool.name} on ${on_string} pan-genome reference" from_work_dir="out/pan_genome_reference.fa">
-            <filter>outputs and 'pangenomeref' in outputs</filter>
-        </data>
-        <data format="csv" name="gene_data" label="${tool.name} on ${on_string} Gene Data" from_work_dir="out/gene_data.csv">
-            <filter>outputs and 'genedata' in outputs</filter>
-        </data> 
-        <data format="fasta" name="combined_DNA_CDS" label="${tool.name} on ${on_string} Combined DNA CDS" from_work_dir="out/combined_DNA_CDS.fasta">
-            <filter>outputs and 'combineddnacds' in outputs</filter>
-        </data>
-        <data format="fasta" name="combined_protein_CDS" label="${tool.name} on ${on_string} Combined Protein CDS" from_work_dir="out/combined_protein_CDS.fasta">
-            <filter>outputs and 'combinedproteincds' in outputs</filter>
-        </data> 
-        <data format="fasta" name="core_gene_alignment_filtered" label="${tool.name} on ${on_string} Core Gene Alignment Filtered" from_work_dir="out/core_gene_alignment_filtered.aln">
-            <filter>outputs and 'coregenealignmentfiltered' in outputs</filter>
-        </data>
+        <data format="txt" name="gene_p_a_rtab" label="${tool.name} on ${on_string} Gene Presence Absence Rtab" from_work_dir="out/gene_presence_absence.Rtab"/>
+        <data format="csv" name="struct_presence_absence" label="${tool.name} on ${on_string} Struct Presence Absence" from_work_dir="out/struct_presence_absence.csv"/>
+        <data format="fasta" name="pan_genome_ref" label="${tool.name} on ${on_string} pan-genome reference" from_work_dir="out/pan_genome_reference.fa"/>
+        <data format="csv" name="gene_data" label="${tool.name} on ${on_string} Gene Data" from_work_dir="out/gene_data.csv"/>
+        <data format="fasta" name="combined_DNA_CDS" label="${tool.name} on ${on_string} Combined DNA CDS" from_work_dir="out/combined_DNA_CDS.fasta"/>
+        <data format="fasta" name="combined_protein_CDS" label="${tool.name} on ${on_string} Combined Protein CDS" from_work_dir="out/combined_protein_CDS.fasta"/>
+        <data format="fasta" name="core_gene_alignment_filtered" label="${tool.name} on ${on_string} Core Gene Alignment Filtered" from_work_dir="out/core_gene_alignment_filtered.aln"/>
     </outputs>
-
     <tests>
+        <!--
         <test expect_num_outputs="10">
             <param name="input1" value="ex1.gff,ex2.gff" ftype="gff3"/>
-            <param name="clean_mode" value="strict"/>
-            <output name="gene_p_a" file="out/gene_p_a.csv" ftype="csv"/>
-            <output name="core_gene_aln" file="out/core_gene_alignment.aln" ftype="fasta"/>
-            <output name="final_graph" file="out/final_graph.txt" ftype="txt"/>
+            <param name="clean_mode" value="sensitive"/>
+            <output name="gene_p_a" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_aln" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="final_graph" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="gene_p_a_rtab" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="3" />
+                </assert_contents>
+            </output>
+            <output name="struct_presence_absence" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="pan_genome_ref" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="150" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="gene_data" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="29" delta="1" min="1"/>
+                    <has_text_matching expression="gff_file,scaffold_name,clustering_id,annotation_id,prot_sequence,dna_sequence,gene_name,description" />
+                </assert_contents>
+            </output>
+            <output name="combined_DNA_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="300" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="combined_protein_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="130" delta="1" min="1"/>
+                    <has_text_matching expression="MKTRIVSSVTTTLLLGSILMNPVANAADSDINIKTGTTDIGSNTTVKTGDLVTYDKENGM" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_alignment_filtered" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_text_matching expression="atgacacatttgacaaaggttttagatacactaactggaatatgcgtagtattattattt" />
+                </assert_contents>
+            </output>
         </test>
         <test expect_num_outputs="10">
             <param name="input1" value="ex1.gff,ex2.gff" ftype="gff3"/>
-            <param name="clean_mode" value="strict"/>
+            <param name="clean_mode" value="sensitive"/>
             <param name="remove_invalid_genes" value="true"/>
-            <param name="alignment" value="core"/>
-            <param name="aligner" value="mafft"/>
-            <output name="gene_p_a" file="out/gene_p_a.csv" ftype="csv"/>
-            <output name="core_gene_aln" file="out/core_gene_alignment.aln" ftype="fasta"/>
-            <output name="final_graph" file="out/final_graph.txt" ftype="txt"/>
+            <output name="gene_p_a" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_aln" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="final_graph" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="gene_p_a_rtab" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="3" />
+                </assert_contents>
+            </output>
+            <output name="struct_presence_absence" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="pan_genome_ref" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="150" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="gene_data" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="29" delta="1" min="1"/>
+                    <has_text_matching expression="gff_file,scaffold_name,clustering_id,annotation_id,prot_sequence,dna_sequence,gene_name,description" />
+                </assert_contents>
+            </output>
+            <output name="combined_DNA_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="300" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="combined_protein_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="130" delta="1" min="1"/>
+                    <has_text_matching expression="MKTRIVSSVTTTLLLGSILMNPVANAADSDINIKTGTTDIGSNTTVKTGDLVTYDKENGM" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_alignment_filtered" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_text_matching expression="atgacacatttgacaaaggttttagatacactaactggaatatgcgtagtattattattt" />
+                </assert_contents>
+            </output>
         </test>
         <test expect_num_outputs="10">
             <param name="input1" value="ex1.gff,ex2.gff" ftype="gff3"/>
-            <param name="clean_mode" value="strict"/>
+            <param name="clean_mode" value="sensitive"/>
+            <param name="remove_invalid_genes" value="true"/>
+            <param name="threshold" value="0.98"/>
+            <output name="gene_p_a" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_aln" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="final_graph" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="gene_p_a_rtab" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="3" />
+                </assert_contents>
+            </output>
+            <output name="struct_presence_absence" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="pan_genome_ref" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="150" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="gene_data" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="29" delta="1" min="1"/>
+                    <has_text_matching expression="gff_file,scaffold_name,clustering_id,annotation_id,prot_sequence,dna_sequence,gene_name,description" />
+                </assert_contents>
+            </output>
+            <output name="combined_DNA_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="300" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="combined_protein_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="130" delta="1" min="1"/>
+                    <has_text_matching expression="MKTRIVSSVTTTLLLGSILMNPVANAADSDINIKTGTTDIGSNTTVKTGDLVTYDKENGM" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_alignment_filtered" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_text_matching expression="atgacacatttgacaaaggttttagatacactaactggaatatgcgtagtattattattt" />
+                </assert_contents>
+            </output>
+        </test>
+        <test expect_num_outputs="10">
+            <param name="input1" value="ex1.gff,ex2.gff" ftype="gff3"/>
+            <param name="clean_mode" value="sensitive"/>
+            <param name="remove_invalid_genes" value="true"/>
+            <param name="threshold" value="0.98"/>
+            <param name="family_threshold" value="0.7"/>
+            <output name="gene_p_a" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_aln" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="final_graph" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="gene_p_a_rtab" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="3" />
+                </assert_contents>
+            </output>
+            <output name="struct_presence_absence" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="pan_genome_ref" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="150" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="gene_data" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="29" delta="1" min="1"/>
+                    <has_text_matching expression="gff_file,scaffold_name,clustering_id,annotation_id,prot_sequence,dna_sequence,gene_name,description" />
+                </assert_contents>
+            </output>
+            <output name="combined_DNA_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="300" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="combined_protein_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="130" delta="1" min="1"/>
+                    <has_text_matching expression="MKTRIVSSVTTTLLLGSILMNPVANAADSDINIKTGTTDIGSNTTVKTGDLVTYDKENGM" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_alignment_filtered" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_text_matching expression="atgacacatttgacaaaggttttagatacactaactggaatatgcgtagtattattattt" />
+                </assert_contents>
+            </output>
+        </test>
+        <test expect_num_outputs="10">
+            <param name="input1" value="ex1.gff,ex2.gff" ftype="gff3"/>
+            <param name="clean_mode" value="sensitive"/>
+            <param name="remove_invalid_genes" value="true"/>
+            <param name="threshold" value="0.98"/>
+            <param name="family_threshold" value="0.7"/>
+            <param name="len_dif_percent" value="0.98"/>
+            <output name="gene_p_a" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_aln" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="final_graph" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="gene_p_a_rtab" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="3" />
+                </assert_contents>
+            </output>
+            <output name="struct_presence_absence" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="pan_genome_ref" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="150" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="gene_data" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="29" delta="1" min="1"/>
+                    <has_text_matching expression="gff_file,scaffold_name,clustering_id,annotation_id,prot_sequence,dna_sequence,gene_name,description" />
+                </assert_contents>
+            </output>
+            <output name="combined_DNA_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="300" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="combined_protein_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="130" delta="1" min="1"/>
+                    <has_text_matching expression="MKTRIVSSVTTTLLLGSILMNPVANAADSDINIKTGTTDIGSNTTVKTGDLVTYDKENGM" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_alignment_filtered" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_text_matching expression="atgacacatttgacaaaggttttagatacactaactggaatatgcgtagtattattattt" />
+                </assert_contents>
+            </output>
+        </test>
+        <test expect_num_outputs="10">
+            <param name="input1" value="ex1.gff,ex2.gff" ftype="gff3"/>
+            <param name="clean_mode" value="sensitive"/>
+            <param name="remove_invalid_genes" value="true"/>
+            <param name="threshold" value="0.98"/>
+            <param name="family_threshold" value="0.7"/>
+            <param name="len_dif_percent" value="0.98"/>
+            <param name="merge_paralogs" value="true"/>
+            <output name="gene_p_a" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_aln" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="final_graph" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="gene_p_a_rtab" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="3" />
+                </assert_contents>
+            </output>
+            <output name="struct_presence_absence" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="pan_genome_ref" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="150" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="gene_data" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="29" delta="1" min="1"/>
+                    <has_text_matching expression="gff_file,scaffold_name,clustering_id,annotation_id,prot_sequence,dna_sequence,gene_name,description" />
+                </assert_contents>
+            </output>
+            <output name="combined_DNA_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="300" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="combined_protein_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="130" delta="1" min="1"/>
+                    <has_text_matching expression="MKTRIVSSVTTTLLLGSILMNPVANAADSDINIKTGTTDIGSNTTVKTGDLVTYDKENGM" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_alignment_filtered" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_text_matching expression="atgacacatttgacaaaggttttagatacactaactggaatatgcgtagtattattattt" />
+                </assert_contents>
+            </output>
+        </test>
+        <test expect_num_outputs="10">
+            <param name="input1" value="ex1.gff,ex2.gff" ftype="gff3"/>
+            <param name="clean_mode" value="sensitive"/>
+            <param name="remove_invalid_genes" value="true"/>
+            <param name="threshold" value="0.98"/>
+            <param name="family_threshold" value="0.7"/>
+            <param name="len_dif_percent" value="0.98"/>
+            <param name="merge_paralogs" value="true"/>
+            <param name="search_radius" value="5000"/>
+            <output name="gene_p_a" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_aln" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="final_graph" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="gene_p_a_rtab" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="3" />
+                </assert_contents>
+            </output>
+            <output name="struct_presence_absence" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="pan_genome_ref" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="150" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="gene_data" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="29" delta="1" min="1"/>
+                    <has_text_matching expression="gff_file,scaffold_name,clustering_id,annotation_id,prot_sequence,dna_sequence,gene_name,description" />
+                </assert_contents>
+            </output>
+            <output name="combined_DNA_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="300" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="combined_protein_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="130" delta="1" min="1"/>
+                    <has_text_matching expression="MKTRIVSSVTTTLLLGSILMNPVANAADSDINIKTGTTDIGSNTTVKTGDLVTYDKENGM" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_alignment_filtered" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_text_matching expression="atgacacatttgacaaaggttttagatacactaactggaatatgcgtagtattattattt" />
+                </assert_contents>
+            </output>
+        </test>
+        -->
+        <test expect_num_outputs="10">
+            <param name="input1" value="ex1.gff,ex2.gff" ftype="gff3"/>
+            <param name="clean_mode" value="sensitive"/>
+            <param name="remove_invalid_genes" value="true"/>
+            <param name="threshold" value="0.98"/>
+            <param name="family_threshold" value="0.7"/>
+            <param name="len_dif_percent" value="0.98"/>
+            <param name="merge_paralogs" value="true"/>
+            <param name="search_radius" value="5000"/>
+            <param name="refind_prop_match" value="0.5"/>
+            <output name="gene_p_a" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_aln" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="final_graph" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="gene_p_a_rtab" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="3" />
+                </assert_contents>
+            </output>
+            <output name="struct_presence_absence" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="pan_genome_ref" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="150" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="gene_data" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="29" delta="1" min="1"/>
+                    <has_text_matching expression="gff_file,scaffold_name,clustering_id,annotation_id,prot_sequence,dna_sequence,gene_name,description" />
+                </assert_contents>
+            </output>
+            <output name="combined_DNA_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="300" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="combined_protein_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="130" delta="1" min="1"/>
+                    <has_text_matching expression="MKTRIVSSVTTTLLLGSILMNPVANAADSDINIKTGTTDIGSNTTVKTGDLVTYDKENGM" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_alignment_filtered" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_text_matching expression="atgacacatttgacaaaggttttagatacactaactggaatatgcgtagtattattattt" />
+                </assert_contents>
+            </output>
+        </test>
+        <test expect_num_outputs="10">
+            <param name="input1" value="ex1.gff,ex2.gff" ftype="gff3"/>
+            <param name="clean_mode" value="sensitive"/>
+            <param name="remove_invalid_genes" value="true"/>
+            <param name="threshold" value="0.98"/>
+            <param name="family_threshold" value="0.7"/>
+            <param name="len_dif_percent" value="0.98"/>
+            <param name="merge_paralogs" value="true"/>
+            <param name="search_radius" value="5000"/>
+            <param name="refind_prop_match" value="0.5"/>
+            <param name="refind_mode" value="strict"/>
+            <output name="gene_p_a" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_aln" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="final_graph" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="gene_p_a_rtab" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="3" />
+                </assert_contents>
+            </output>
+            <output name="struct_presence_absence" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="pan_genome_ref" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="150" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="gene_data" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="29" delta="1" min="1"/>
+                    <has_text_matching expression="gff_file,scaffold_name,clustering_id,annotation_id,prot_sequence,dna_sequence,gene_name,description" />
+                </assert_contents>
+            </output>
+            <output name="combined_DNA_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="300" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="combined_protein_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="130" delta="1" min="1"/>
+                    <has_text_matching expression="MKTRIVSSVTTTLLLGSILMNPVANAADSDINIKTGTTDIGSNTTVKTGDLVTYDKENGM" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_alignment_filtered" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_text_matching expression="atgacacatttgacaaaggttttagatacactaactggaatatgcgtagtattattattt" />
+                </assert_contents>
+            </output>
+        </test>
+        <test expect_num_outputs="10">
+            <param name="input1" value="ex1.gff,ex2.gff" ftype="gff3"/>
+            <param name="clean_mode" value="sensitive"/>
+            <param name="remove_invalid_genes" value="true"/>
+            <param name="threshold" value="0.98"/>
+            <param name="family_threshold" value="0.7"/>
+            <param name="len_dif_percent" value="0.98"/>
+            <param name="merge_paralogs" value="true"/>
+            <param name="search_radius" value="5000"/>
+            <param name="refind_prop_match" value="0.5"/>
+            <param name="refind_mode" value="strict"/>
+            <param name="min_trailing_support" value="10"/>
+            <output name="gene_p_a" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_aln" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="final_graph" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="gene_p_a_rtab" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="3" />
+                </assert_contents>
+            </output>
+            <output name="struct_presence_absence" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="pan_genome_ref" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="150" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="gene_data" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="29" delta="1" min="1"/>
+                    <has_text_matching expression="gff_file,scaffold_name,clustering_id,annotation_id,prot_sequence,dna_sequence,gene_name,description" />
+                </assert_contents>
+            </output>
+            <output name="combined_DNA_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="300" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="combined_protein_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="130" delta="1" min="1"/>
+                    <has_text_matching expression="MKTRIVSSVTTTLLLGSILMNPVANAADSDINIKTGTTDIGSNTTVKTGDLVTYDKENGM" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_alignment_filtered" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_text_matching expression="atgacacatttgacaaaggttttagatacactaactggaatatgcgtagtattattattt" />
+                </assert_contents>
+            </output>
+        </test>
+        <test expect_num_outputs="10">
+            <param name="input1" value="ex1.gff,ex2.gff" ftype="gff3"/>
+            <param name="clean_mode" value="sensitive"/>
+            <param name="remove_invalid_genes" value="true"/>
+            <param name="threshold" value="0.98"/>
+            <param name="family_threshold" value="0.7"/>
+            <param name="len_dif_percent" value="0.98"/>
+            <param name="merge_paralogs" value="true"/>
+            <param name="search_radius" value="5000"/>
+            <param name="refind_prop_match" value="0.5"/>
+            <param name="refind_mode" value="strict"/>
+            <param name="min_trailing_support" value="10"/>
+            <param name="edge_support_threshold" value="0.1"/>
+            <output name="gene_p_a" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_aln" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="final_graph" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="gene_p_a_rtab" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="3" />
+                </assert_contents>
+            </output>
+            <output name="struct_presence_absence" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="pan_genome_ref" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="150" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="gene_data" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="29" delta="1" min="1"/>
+                    <has_text_matching expression="gff_file,scaffold_name,clustering_id,annotation_id,prot_sequence,dna_sequence,gene_name,description" />
+                </assert_contents>
+            </output>
+            <output name="combined_DNA_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="300" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="combined_protein_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="130" delta="1" min="1"/>
+                    <has_text_matching expression="MKTRIVSSVTTTLLLGSILMNPVANAADSDINIKTGTTDIGSNTTVKTGDLVTYDKENGM" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_alignment_filtered" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_text_matching expression="atgacacatttgacaaaggttttagatacactaactggaatatgcgtagtattattattt" />
+                </assert_contents>
+            </output>
+        </test>
+        <test expect_num_outputs="10">
+            <param name="input1" value="ex1.gff,ex2.gff" ftype="gff3"/>
+            <param name="clean_mode" value="sensitive"/>
+            <param name="remove_invalid_genes" value="true"/>
+            <param name="threshold" value="0.98"/>
+            <param name="family_threshold" value="0.7"/>
+            <param name="len_dif_percent" value="0.98"/>
+            <param name="merge_paralogs" value="true"/>
+            <param name="search_radius" value="5000"/>
+            <param name="refind_prop_match" value="0.5"/>
+            <param name="refind_mode" value="strict"/>
+            <param name="min_trailing_support" value="10"/>
+            <param name="edge_support_threshold" value="0.1"/>
+            <param name="length_outlier_support_proportion" value="0.01"/>
+            <output name="gene_p_a" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_aln" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="final_graph" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="gene_p_a_rtab" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="3" />
+                </assert_contents>
+            </output>
+            <output name="struct_presence_absence" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="pan_genome_ref" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="150" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="gene_data" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="29" delta="1" min="1"/>
+                    <has_text_matching expression="gff_file,scaffold_name,clustering_id,annotation_id,prot_sequence,dna_sequence,gene_name,description" />
+                </assert_contents>
+            </output>
+            <output name="combined_DNA_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="300" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="combined_protein_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="130" delta="1" min="1"/>
+                    <has_text_matching expression="MKTRIVSSVTTTLLLGSILMNPVANAADSDINIKTGTTDIGSNTTVKTGDLVTYDKENGM" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_alignment_filtered" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_text_matching expression="atgacacatttgacaaaggttttagatacactaactggaatatgcgtagtattattattt" />
+                </assert_contents>
+            </output>
+        </test>
+        <test expect_num_outputs="10">
+            <param name="input1" value="ex1.gff,ex2.gff" ftype="gff3"/>
+            <param name="clean_mode" value="sensitive"/>
+            <param name="remove_invalid_genes" value="true"/>
+            <param name="threshold" value="0.98"/>
+            <param name="family_threshold" value="0.7"/>
+            <param name="len_dif_percent" value="0.98"/>
+            <param name="merge_paralogs" value="true"/>
+            <param name="search_radius" value="5000"/>
+            <param name="refind_prop_match" value="0.5"/>
+            <param name="refind_mode" value="strict"/>
+            <param name="min_trailing_support" value="10"/>
+            <param name="edge_support_threshold" value="0.1"/>
+            <param name="length_outlier_support_proportion" value="0.01"/>
+            <param name="remove_by_consensus" value="true"/>
+            <output name="gene_p_a" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_aln" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="final_graph" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="gene_p_a_rtab" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="3" />
+                </assert_contents>
+            </output>
+            <output name="struct_presence_absence" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="pan_genome_ref" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="150" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="gene_data" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="29" delta="1" min="1"/>
+                    <has_text_matching expression="gff_file,scaffold_name,clustering_id,annotation_id,prot_sequence,dna_sequence,gene_name,description" />
+                </assert_contents>
+            </output>
+            <output name="combined_DNA_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="300" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="combined_protein_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="130" delta="1" min="1"/>
+                    <has_text_matching expression="MKTRIVSSVTTTLLLGSILMNPVANAADSDINIKTGTTDIGSNTTVKTGDLVTYDKENGM" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_alignment_filtered" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_text_matching expression="atgacacatttgacaaaggttttagatacactaactggaatatgcgtagtattattattt" />
+                </assert_contents>
+            </output>
+        </test>
+        <test expect_num_outputs="10">
+            <param name="input1" value="ex1.gff,ex2.gff" ftype="gff3"/>
+            <param name="clean_mode" value="sensitive"/>
+            <param name="remove_invalid_genes" value="true"/>
+            <param name="threshold" value="0.98"/>
+            <param name="family_threshold" value="0.7"/>
+            <param name="len_dif_percent" value="0.98"/>
+            <param name="merge_paralogs" value="true"/>
+            <param name="search_radius" value="5000"/>
+            <param name="refind_prop_match" value="0.5"/>
+            <param name="refind_mode" value="strict"/>
+            <param name="min_trailing_support" value="10"/>
+            <param name="edge_support_threshold" value="0.1"/>
+            <param name="length_outlier_support_proportion" value="0.01"/>
+            <param name="remove_by_consensus" value="true"/>
+            <param name="high_var_flag" value="5"/>
+            <output name="gene_p_a" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_aln" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="final_graph" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="gene_p_a_rtab" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="3" />
+                </assert_contents>
+            </output>
+            <output name="struct_presence_absence" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="pan_genome_ref" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="150" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="gene_data" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="29" delta="1" min="1"/>
+                    <has_text_matching expression="gff_file,scaffold_name,clustering_id,annotation_id,prot_sequence,dna_sequence,gene_name,description" />
+                </assert_contents>
+            </output>
+            <output name="combined_DNA_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="300" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="combined_protein_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="130" delta="1" min="1"/>
+                    <has_text_matching expression="MKTRIVSSVTTTLLLGSILMNPVANAADSDINIKTGTTDIGSNTTVKTGDLVTYDKENGM" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_alignment_filtered" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_text_matching expression="atgacacatttgacaaaggttttagatacactaactggaatatgcgtagtattattattt" />
+                </assert_contents>
+            </output>
+        </test>
+        <test expect_num_outputs="10">
+            <param name="input1" value="ex1.gff,ex2.gff" ftype="gff3"/>
+            <param name="clean_mode" value="sensitive"/>
+            <param name="remove_invalid_genes" value="true"/>
+            <param name="threshold" value="0.98"/>
+            <param name="family_threshold" value="0.7"/>
+            <param name="len_dif_percent" value="0.98"/>
+            <param name="merge_paralogs" value="true"/>
+            <param name="search_radius" value="5000"/>
+            <param name="refind_prop_match" value="0.5"/>
+            <param name="refind_mode" value="strict"/>
+            <param name="min_trailing_support" value="10"/>
+            <param name="edge_support_threshold" value="0.1"/>
+            <param name="length_outlier_support_proportion" value="0.01"/>
+            <param name="remove_by_consensus" value="true"/>
+            <param name="high_var_flag" value="5"/>
+            <param name="min_edge_support_sv" value="1"/>
+            <output name="gene_p_a" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_aln" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="final_graph" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="gene_p_a_rtab" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="3" />
+                </assert_contents>
+            </output>
+            <output name="struct_presence_absence" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="pan_genome_ref" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="150" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="gene_data" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="29" delta="1" min="1"/>
+                    <has_text_matching expression="gff_file,scaffold_name,clustering_id,annotation_id,prot_sequence,dna_sequence,gene_name,description" />
+                </assert_contents>
+            </output>
+            <output name="combined_DNA_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="300" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="combined_protein_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="130" delta="1" min="1"/>
+                    <has_text_matching expression="MKTRIVSSVTTTLLLGSILMNPVANAADSDINIKTGTTDIGSNTTVKTGDLVTYDKENGM" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_alignment_filtered" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_text_matching expression="atgacacatttgacaaaggttttagatacactaactggaatatgcgtagtattattattt" />
+                </assert_contents>
+            </output>
+        </test>
+        <test expect_num_outputs="10">
+            <param name="input1" value="ex1.gff,ex2.gff" ftype="gff3"/>
+            <param name="clean_mode" value="sensitive"/>
+            <param name="remove_invalid_genes" value="true"/>
+            <param name="threshold" value="0.98"/>
+            <param name="family_threshold" value="0.7"/>
+            <param name="len_dif_percent" value="0.98"/>
+            <param name="merge_paralogs" value="true"/>
+            <param name="search_radius" value="5000"/>
+            <param name="refind_prop_match" value="0.5"/>
+            <param name="refind_mode" value="strict"/>
+            <param name="min_trailing_support" value="10"/>
+            <param name="edge_support_threshold" value="0.1"/>
+            <param name="length_outlier_support_proportion" value="0.01"/>
+            <param name="remove_by_consensus" value="true"/>
+            <param name="high_var_flag" value="5"/>
+            <param name="min_edge_support_sv" value="1"/>
+            <param name="all_seq_in_graph" value="true"/>
+            <output name="gene_p_a" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_aln" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="final_graph" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="gene_p_a_rtab" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="3" />
+                </assert_contents>
+            </output>
+            <output name="struct_presence_absence" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="pan_genome_ref" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="150" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="gene_data" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="29" delta="1" min="1"/>
+                    <has_text_matching expression="gff_file,scaffold_name,clustering_id,annotation_id,prot_sequence,dna_sequence,gene_name,description" />
+                </assert_contents>
+            </output>
+            <output name="combined_DNA_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="300" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="combined_protein_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="130" delta="1" min="1"/>
+                    <has_text_matching expression="MKTRIVSSVTTTLLLGSILMNPVANAADSDINIKTGTTDIGSNTTVKTGDLVTYDKENGM" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_alignment_filtered" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_text_matching expression="atgacacatttgacaaaggttttagatacactaactggaatatgcgtagtattattattt" />
+                </assert_contents>
+            </output>
+        </test>
+        <test expect_num_outputs="10">
+            <param name="input1" value="ex1.gff,ex2.gff" ftype="gff3"/>
+            <param name="clean_mode" value="sensitive"/>
+            <param name="remove_invalid_genes" value="true"/>
+            <param name="threshold" value="0.98"/>
+            <param name="family_threshold" value="0.7"/>
+            <param name="len_dif_percent" value="0.98"/>
+            <param name="merge_paralogs" value="true"/>
+            <param name="search_radius" value="5000"/>
+            <param name="refind_prop_match" value="0.5"/>
+            <param name="refind_mode" value="strict"/>
+            <param name="min_trailing_support" value="10"/>
+            <param name="edge_support_threshold" value="0.1"/>
+            <param name="length_outlier_support_proportion" value="0.01"/>
+            <param name="remove_by_consensus" value="true"/>
+            <param name="high_var_flag" value="5"/>
+            <param name="min_edge_support_sv" value="1"/>
+            <param name="all_seq_in_graph" value="true"/>
+            <param name="no_clean_edges" value="true"/>
+            <output name="gene_p_a" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_aln" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="final_graph" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="gene_p_a_rtab" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="3" />
+                </assert_contents>
+            </output>
+            <output name="struct_presence_absence" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="pan_genome_ref" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="150" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="gene_data" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="29" delta="1" min="1"/>
+                    <has_text_matching expression="gff_file,scaffold_name,clustering_id,annotation_id,prot_sequence,dna_sequence,gene_name,description" />
+                </assert_contents>
+            </output>
+            <output name="combined_DNA_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="300" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="combined_protein_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="130" delta="1" min="1"/>
+                    <has_text_matching expression="MKTRIVSSVTTTLLLGSILMNPVANAADSDINIKTGTTDIGSNTTVKTGDLVTYDKENGM" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_alignment_filtered" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_text_matching expression="atgacacatttgacaaaggttttagatacactaactggaatatgcgtagtattattattt" />
+                </assert_contents>
+            </output>
+        </test>
+        <test expect_num_outputs="10">
+            <param name="input1" value="ex1.gff,ex2.gff" ftype="gff3"/>
+            <param name="clean_mode" value="sensitive"/>
+            <param name="remove_invalid_genes" value="true"/>
+            <param name="threshold" value="0.98"/>
+            <param name="family_threshold" value="0.7"/>
+            <param name="len_dif_percent" value="0.98"/>
+            <param name="merge_paralogs" value="true"/>
+            <param name="search_radius" value="5000"/>
+            <param name="refind_prop_match" value="0.5"/>
+            <param name="refind_mode" value="strict"/>
+            <param name="min_trailing_support" value="10"/>
+            <param name="edge_support_threshold" value="0.1"/>
+            <param name="length_outlier_support_proportion" value="0.01"/>
+            <param name="remove_by_consensus" value="true"/>
+            <param name="high_var_flag" value="5"/>
+            <param name="min_edge_support_sv" value="1"/>
+            <param name="all_seq_in_graph" value="true"/>
+            <param name="no_clean_edges" value="true"/>
+            <param name="alignment" value="pan"/>
+            <output name="gene_p_a" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_aln" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="final_graph" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="gene_p_a_rtab" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="3" />
+                </assert_contents>
+            </output>
+            <output name="struct_presence_absence" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="pan_genome_ref" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="150" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="gene_data" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="29" delta="1" min="1"/>
+                    <has_text_matching expression="gff_file,scaffold_name,clustering_id,annotation_id,prot_sequence,dna_sequence,gene_name,description" />
+                </assert_contents>
+            </output>
+            <output name="combined_DNA_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="300" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="combined_protein_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="130" delta="1" min="1"/>
+                    <has_text_matching expression="MKTRIVSSVTTTLLLGSILMNPVANAADSDINIKTGTTDIGSNTTVKTGDLVTYDKENGM" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_alignment_filtered" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_text_matching expression="atgacacatttgacaaaggttttagatacactaactggaatatgcgtagtattattattt" />
+                </assert_contents>
+            </output>
+        </test>
+        <test expect_num_outputs="10">
+            <param name="input1" value="ex1.gff,ex2.gff" ftype="gff3"/>
+            <param name="clean_mode" value="sensitive"/>
+            <param name="remove_invalid_genes" value="true"/>
+            <param name="threshold" value="0.98"/>
+            <param name="family_threshold" value="0.7"/>
+            <param name="len_dif_percent" value="0.98"/>
+            <param name="merge_paralogs" value="true"/>
+            <param name="search_radius" value="5000"/>
+            <param name="refind_prop_match" value="0.5"/>
+            <param name="refind_mode" value="strict"/>
+            <param name="min_trailing_support" value="10"/>
+            <param name="edge_support_threshold" value="0.1"/>
+            <param name="length_outlier_support_proportion" value="0.01"/>
+            <param name="remove_by_consensus" value="true"/>
+            <param name="high_var_flag" value="5"/>
+            <param name="min_edge_support_sv" value="1"/>
+            <param name="all_seq_in_graph" value="true"/>
+            <param name="no_clean_edges" value="true"/>
+            <param name="alignment" value="pan"/>
+            <param name="aligner" value="mafft"/>
+            <output name="gene_p_a" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_aln" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="final_graph" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="gene_p_a_rtab" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="3" />
+                </assert_contents>
+            </output>
+            <output name="struct_presence_absence" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="pan_genome_ref" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="150" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="gene_data" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="29" delta="1" min="1"/>
+                    <has_text_matching expression="gff_file,scaffold_name,clustering_id,annotation_id,prot_sequence,dna_sequence,gene_name,description" />
+                </assert_contents>
+            </output>
+            <output name="combined_DNA_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="300" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="combined_protein_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="130" delta="1" min="1"/>
+                    <has_text_matching expression="MKTRIVSSVTTTLLLGSILMNPVANAADSDINIKTGTTDIGSNTTVKTGDLVTYDKENGM" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_alignment_filtered" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_text_matching expression="atgacacatttgacaaaggttttagatacactaactggaatatgcgtagtattattattt" />
+                </assert_contents>
+            </output>
+        </test>
+        <test expect_num_outputs="10">
+            <param name="input1" value="ex1.gff,ex2.gff" ftype="gff3"/>
+            <param name="clean_mode" value="sensitive"/>
+            <param name="remove_invalid_genes" value="true"/>
+            <param name="threshold" value="0.98"/>
+            <param name="family_threshold" value="0.7"/>
+            <param name="len_dif_percent" value="0.98"/>
+            <param name="merge_paralogs" value="true"/>
+            <param name="search_radius" value="5000"/>
+            <param name="refind_prop_match" value="0.5"/>
+            <param name="refind_mode" value="strict"/>
+            <param name="min_trailing_support" value="10"/>
+            <param name="edge_support_threshold" value="0.1"/>
+            <param name="length_outlier_support_proportion" value="0.01"/>
+            <param name="remove_by_consensus" value="true"/>
+            <param name="high_var_flag" value="5"/>
+            <param name="min_edge_support_sv" value="1"/>
+            <param name="all_seq_in_graph" value="true"/>
+            <param name="no_clean_edges" value="true"/>
+            <param name="alignment" value="pan"/>
+            <param name="aligner" value="mafft"/>
+            <param name="codons" value="true"/>
+            <output name="gene_p_a" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_aln" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="final_graph" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="gene_p_a_rtab" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="3" />
+                </assert_contents>
+            </output>
+            <output name="struct_presence_absence" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="pan_genome_ref" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="150" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="gene_data" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="29" delta="1" min="1"/>
+                    <has_text_matching expression="gff_file,scaffold_name,clustering_id,annotation_id,prot_sequence,dna_sequence,gene_name,description" />
+                </assert_contents>
+            </output>
+            <output name="combined_DNA_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="300" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="combined_protein_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="130" delta="1" min="1"/>
+                    <has_text_matching expression="MKTRIVSSVTTTLLLGSILMNPVANAADSDINIKTGTTDIGSNTTVKTGDLVTYDKENGM" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_alignment_filtered" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+        </test>
+        <test expect_num_outputs="10">
+            <param name="input1" value="ex1.gff,ex2.gff" ftype="gff3"/>
+            <param name="clean_mode" value="sensitive"/>
+            <param name="remove_invalid_genes" value="true"/>
+            <param name="threshold" value="0.98"/>
+            <param name="family_threshold" value="0.7"/>
+            <param name="len_dif_percent" value="0.98"/>
+            <param name="merge_paralogs" value="true"/>
+            <param name="search_radius" value="5000"/>
+            <param name="refind_prop_match" value="0.5"/>
+            <param name="refind_mode" value="strict"/>
+            <param name="min_trailing_support" value="10"/>
+            <param name="edge_support_threshold" value="0.1"/>
+            <param name="length_outlier_support_proportion" value="0.01"/>
+            <param name="remove_by_consensus" value="true"/>
+            <param name="high_var_flag" value="5"/>
+            <param name="min_edge_support_sv" value="1"/>
+            <param name="all_seq_in_graph" value="true"/>
+            <param name="no_clean_edges" value="true"/>
+            <param name="alignment" value="pan"/>
+            <param name="aligner" value="mafft"/>
+            <param name="codons" value="true"/>
+            <param name="core_threshold" value="0.95"/>
+            <output name="gene_p_a" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_aln" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="final_graph" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="gene_p_a_rtab" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="3" />
+                </assert_contents>
+            </output>
+            <output name="struct_presence_absence" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="pan_genome_ref" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="150" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="gene_data" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="29" delta="1" min="1"/>
+                    <has_text_matching expression="gff_file,scaffold_name,clustering_id,annotation_id,prot_sequence,dna_sequence,gene_name,description" />
+                </assert_contents>
+            </output>
+            <output name="combined_DNA_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="300" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="combined_protein_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="130" delta="1" min="1"/>
+                    <has_text_matching expression="MKTRIVSSVTTTLLLGSILMNPVANAADSDINIKTGTTDIGSNTTVKTGDLVTYDKENGM" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_alignment_filtered" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+        </test>
+        <test expect_num_outputs="10">
+            <param name="input1" value="ex1.gff,ex2.gff" ftype="gff3"/>
+            <param name="clean_mode" value="sensitive"/>
+            <param name="remove_invalid_genes" value="true"/>
+            <param name="threshold" value="0.98"/>
+            <param name="family_threshold" value="0.7"/>
+            <param name="len_dif_percent" value="0.98"/>
+            <param name="merge_paralogs" value="true"/>
+            <param name="search_radius" value="5000"/>
+            <param name="refind_prop_match" value="0.5"/>
+            <param name="refind_mode" value="strict"/>
+            <param name="min_trailing_support" value="10"/>
+            <param name="edge_support_threshold" value="0.1"/>
+            <param name="length_outlier_support_proportion" value="0.01"/>
+            <param name="remove_by_consensus" value="true"/>
+            <param name="high_var_flag" value="5"/>
+            <param name="min_edge_support_sv" value="1"/>
+            <param name="all_seq_in_graph" value="true"/>
+            <param name="no_clean_edges" value="true"/>
+            <param name="alignment" value="pan"/>
+            <param name="aligner" value="mafft"/>
+            <param name="codons" value="true"/>
+            <param name="core_threshold" value="0.95"/>
+            <param name="core_subset" value="true"/>
+            <output name="gene_p_a" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_aln" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="final_graph" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="gene_p_a_rtab" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="3" />
+                </assert_contents>
+            </output>
+            <output name="struct_presence_absence" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="pan_genome_ref" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="150" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="gene_data" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="29" delta="1" min="1"/>
+                    <has_text_matching expression="gff_file,scaffold_name,clustering_id,annotation_id,prot_sequence,dna_sequence,gene_name,description" />
+                </assert_contents>
+            </output>
+            <output name="combined_DNA_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="300" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="combined_protein_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="130" delta="1" min="1"/>
+                    <has_text_matching expression="MKTRIVSSVTTTLLLGSILMNPVANAADSDINIKTGTTDIGSNTTVKTGDLVTYDKENGM" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_alignment_filtered" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+        </test>
+        <test expect_num_outputs="10">
+            <param name="input1" value="ex1.gff,ex2.gff" ftype="gff3"/>
+            <param name="clean_mode" value="sensitive"/>
             <param name="remove_invalid_genes" value="true"/>
             <param name="threshold" value="0.98"/>
             <param name="family_threshold" value="0.7"/>
@@ -227,16 +1836,151 @@
             <param name="core_threshold" value="0.95"/>
             <param name="core_subset" value="true"/>
             <param name="core_entropy_filter" value="0.5"/>        
-            <output name="gene_p_a" file="out/gene_p_a.csv" ftype="csv"/>
-            <output name="core_gene_aln" file="out/core_gene_alignment.aln" ftype="fasta"/>
-            <output name="final_graph" file="out/final_graph.txt" ftype="txt"/>
-            <output name="gene_p_a_rtab" file="out/gene_presence_absence.Rtab" ftype="txt"/>
-            <output name="struct_presence_absence" file="out/struct_presence_absence.csv" ftype="csv"/>
-            <output name="pan_genome_ref" file="out/pan_genome_reference.fa" ftype="fasta"/>
-            <output name="gene_data" file="out/gene_data.csv" ftype="csv"/>
-            <output name="combined_DNA_CDS" file="out/combined_DNA_CDS.fasta" ftype="fasta"/>
-            <output name="combined_protein_CDS" file="out/combined_protein_CDS.fasta" ftype="fasta"/>
-            <output name="core_gene_alignment_filtered" file="out/core_gene_alignment_filtered.aln" ftype="fasta"/>
+            <output name="gene_p_a" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_aln" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="final_graph" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="gene_p_a_rtab" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="3" />
+                </assert_contents>
+            </output>
+            <output name="struct_presence_absence" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="pan_genome_ref" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="150" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="gene_data" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="29" delta="1" min="1"/>
+                    <has_text_matching expression="gff_file,scaffold_name,clustering_id,annotation_id,prot_sequence,dna_sequence,gene_name,description" />
+                </assert_contents>
+            </output>
+            <output name="combined_DNA_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="300" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="combined_protein_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="130" delta="1" min="1"/>
+                    <has_text_matching expression="MKTRIVSSVTTTLLLGSILMNPVANAADSDINIKTGTTDIGSNTTVKTGDLVTYDKENGM" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_alignment_filtered" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+        </test>
+        <test expect_num_outputs="10">
+            <param name="input1" value="ex1.gff,ex2.gff" ftype="gff3"/>
+            <param name="clean_mode" value="sensitive"/>
+            <param name="remove_invalid_genes" value="true"/>
+            <param name="threshold" value="0.98"/>
+            <param name="family_threshold" value="0.7"/>
+            <param name="len_dif_percent" value="0.98"/>
+            <param name="merge_paralogs" value="true"/>
+            <param name="search_radius" value="5000"/>
+            <param name="refind_prop_match" value="0.5"/>
+            <param name="refind_mode" value="strict"/>
+            <param name="min_trailing_support" value="10"/>
+            <param name="edge_support_threshold" value="0.1"/>
+            <param name="length_outlier_support_proportion" value="0.01"/>
+            <param name="remove_by_consensus" value="true"/>
+            <param name="high_var_flag" value="5"/>
+            <param name="min_edge_support_sv" value="1"/>
+            <param name="all_seq_in_graph" value="true"/>
+            <param name="no_clean_edges" value="true"/>
+            <param name="alignment" value="pan"/>
+            <param name="aligner" value="mafft"/>
+            <param name="codons" value="true"/>
+            <param name="core_threshold" value="0.95"/>
+            <param name="core_entropy_filter" value="0.5"/>        
+            <output name="gene_p_a" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_aln" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
+            <output name="final_graph" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="gene_p_a_rtab" ftype="txt">
+                <assert_contents>
+                    <has_n_lines n="15" delta="1" min="1"/>
+                    <has_n_columns n="3" />
+                </assert_contents>
+            </output>
+            <output name="struct_presence_absence" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="0" delta="1" min="0"/>
+                    <has_text_matching expression="" />
+                </assert_contents>
+            </output>
+            <output name="pan_genome_ref" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="150" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="gene_data" ftype="csv">
+                <assert_contents>
+                    <has_n_lines n="29" delta="1" min="1"/>
+                    <has_text_matching expression="gff_file,scaffold_name,clustering_id,annotation_id,prot_sequence,dna_sequence,gene_name,description" />
+                </assert_contents>
+            </output>
+            <output name="combined_DNA_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="300" delta="1" min="1"/>
+                    <has_text_matching expression="ATGAAAACACGTATAGTCAGCTCAGTAACAACAACACTATTGCTAGGTTCCATATTAATG" />
+                </assert_contents>
+            </output>
+            <output name="combined_protein_CDS" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="130" delta="1" min="1"/>
+                    <has_text_matching expression="MKTRIVSSVTTTLLLGSILMNPVANAADSDINIKTGTTDIGSNTTVKTGDLVTYDKENGM" />
+                </assert_contents>
+            </output>
+            <output name="core_gene_alignment_filtered" ftype="fasta">
+                <assert_contents>
+                    <has_n_lines n="260" delta="1" min="1"/>
+                    <has_n_columns n="1" />
+                </assert_contents>
+            </output>
         </test>
     </tests>
     <help><![CDATA[

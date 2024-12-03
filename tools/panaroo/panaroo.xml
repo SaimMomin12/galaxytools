@@ -170,7 +170,6 @@
         <data format="fasta" name="core_gene_alignment_filtered" label="${tool.name} on ${on_string} Core Gene Alignment Filtered" from_work_dir="out/core_gene_alignment_filtered.aln"/>
     </outputs>
     <tests>
-        <!--
         <test expect_num_outputs="10">
             <param name="input1" value="ex1.gff,ex2.gff" ftype="gff3"/>
             <param name="clean_mode" value="sensitive"/>
@@ -640,7 +639,6 @@
                 </assert_contents>
             </output>
         </test>
-        -->
         <test expect_num_outputs="10">
             <param name="input1" value="ex1.gff,ex2.gff" ftype="gff3"/>
             <param name="clean_mode" value="sensitive"/>

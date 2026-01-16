@@ -1,0 +1,15 @@
+Gene,Non-unique Gene name,Annotation,ex1,ex2
+group_8,,Gonococcal growth inhibitor IIIStaphylococcus haemolytic protein,abc_00015,abc_00015
+group_7,,Gonococcal growth inhibitor IIIStaphylococcus haemolytic protein,abc_00014,abc_00014
+group_6,,hypothetical protein,abc_00002,abc_00002
+group_5,,hypothetical protein,abc_00012,abc_00012
+group_4,,hypothetical protein,abc_00003,abc_00003
+group_3,,hypothetical protein,abc_00010,abc_00010
+yfnB,yfnB,Putative HAD-hydrolase yfnBdUMP phosphataseHAD hydrolasehaloacid dehalogenase-like hydrolase,abc_00016,abc_00016
+group_2,,superantigen-like proteinStaphylococcal/Streptococcal toxin beta-grasp domain,abc_00004,abc_00004
+group_1,,superantigen-like proteinStaphylococcal/Streptococcal toxin beta-grasp domain,abc_00006,abc_00006
+speH,speH,hypothetical proteinsuperantigen-like proteinStaphylococcal/Streptococcal toxin beta-grasp domain,abc_00005,abc_00005
+arcC1,arcC1,Carbamate kinase 1putative amino acid kinasecarbamate kinaseAmino acid kinase family protein,abc_00008,abc_00008
+group_0,,C4-dicarboxylate transporter/malic acid transport protein,abc_00011,abc_00011
+hly,hly,Alpha-toxinbeta-channel forming cytolysinLeukocidin/Hemolysin toxin family protein,abc_00001,abc_00001
+argF,argF,Ornithine carbamoyltransferaseornithine carbamoyltransferaseOrnithine carbamoyltransferaseornithine carbamoyltransferaseAspartate/ornithine carbamoyltransferase Asp/Orn binding domain,abc_00007,abc_00007

@@ -1,0 +1,16 @@
+categories:
+- Gene clustering
+- Genome comparison
+description: Panaroo builds a graphical representation of the pangenome while performing a number of cleaning steps.
+long_description: |
+   Panaroo is a tool for constructing pangenomes from bacterial genome datasets.
+   It analyzes genome sequences to identify and organize core and accessory genes across multiple strains of a species.
+   Panaroo also performs several cleaning steps to refine gene clusters, removing redundancy and improving accuracy.
+   The tool outputs data that researchers can use to study gene distribution, diversity, and evolutionary relationships within bacterial populations.
+   
+   https://github.com/gtonkinhill/panaroo
+name: panaroo
+owner: bgruening
+remote_repository_url: https://github.com/gtonkinhill/panaroo.git
+homepage_url: https://gthlab.au/panaroo/#/gettingstarted/quickstart
+type: unrestricted
